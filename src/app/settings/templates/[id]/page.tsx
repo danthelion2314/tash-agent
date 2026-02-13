@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { TashService } from "@/lib/tash-service";
-import { RequestTemplate, Requirement, ProcessStep } from "@/types/schema";
+import { RequestTemplate, Requirement, ProcessStep, COMMON_REQUIREMENTS, COMMON_MASHAK_ACTIONS, COMMON_SOLDIER_ACTIONS } from "@/types/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-    Save, Plus, Trash2, ArrowRight, FileText, ListOrdered, Loader2, AlertTriangle, Info
+    Save, Plus, Trash2, ArrowRight, FileText, ListOrdered, Loader2, AlertTriangle, Info, Copy
 } from "lucide-react";
 
 export default function EditTemplatePage() {
@@ -23,13 +23,17 @@ export default function EditTemplatePage() {
     const [saving, setSaving] = useState(false);
     const [isNewMode, setIsNewMode] = useState(false);
 
+    // State for quick add dropdowns
+    const [selectedReqIndex, setSelectedReqIndex] = useState<number>(0);
+    const [selectedMashakAction, setSelectedMashakAction] = useState<string>("");
+    const [selectedSoldierAction, setSelectedSoldierAction] = useState<string>("");
+
     useEffect(() => {
         async function load() {
             const id = params.id as string;
 
             if (id === 'new') {
                 setIsNewMode(true);
-                // התיקון: אתחול מלא של כל השדות החדשים מה-Schema
                 setTemplate({
                     id: "",
                     title: "",
@@ -39,7 +43,6 @@ export default function EditTemplatePage() {
                     workflow: [],
                     slaHours: 168,
                     lastUpdated: new Date().toISOString(),
-                    // === שדות חדשים ===
                     eligibilityCriteria: [],
                     aiKeywords: [],
                     approvingAuthority: "",
@@ -60,7 +63,6 @@ export default function EditTemplatePage() {
         load();
     }, [params.id]);
 
-    // --- עדכון שדות ראשיים ---
     const updateMeta = (field: keyof RequestTemplate, value: any) => {
         if (!template) return;
         setTemplate({ ...template, [field]: value });
@@ -89,7 +91,23 @@ export default function EditTemplatePage() {
             type: "file",
             required: true,
             allowMultiple: false,
-            assignedTo: 'soldier' // ברירת מחדל
+            assignedTo: 'soldier'
+        };
+        setTemplate({ ...template, requirements: [...template.requirements, newReq] });
+    };
+
+    // הוספת דרישה מהרשימה המוגדרת
+    const addFromPredefinedReq = () => {
+        if (!template) return;
+        const predefined = COMMON_REQUIREMENTS[selectedReqIndex];
+        const newReq: Requirement = {
+            id: `req_${Date.now()}`,
+            title: predefined.title,
+            description: predefined.description || "",
+            type: predefined.type,
+            required: predefined.required ?? true,
+            allowMultiple: false,
+            assignedTo: 'soldier'
         };
         setTemplate({ ...template, requirements: [...template.requirements, newReq] });
     };
@@ -105,7 +123,7 @@ export default function EditTemplatePage() {
     const deleteStep = (index: number) => {
         if (!template) return;
         const newSteps = template.workflow.filter((_, i) => i !== index);
-        newSteps.forEach((s, i) => s.order = i + 1); // סידור מחדש
+        newSteps.forEach((s, i) => s.order = i + 1);
         setTemplate({ ...template, workflow: newSteps });
     };
 
@@ -116,16 +134,53 @@ export default function EditTemplatePage() {
             title: "",
             description: "",
             isAutomated: false,
-            responsible: 'mashak' // ברירת מחדל
+            responsible: 'mashak'
         };
         setTemplate({ ...template, workflow: [...template.workflow, newStep] });
+    };
+
+    // --- פעולות מש"ק ---
+    const addMashakAction = (action?: string) => {
+        if (!template) return;
+        const actionText = action || selectedMashakAction;
+        if (!actionText) return;
+        setTemplate({
+            ...template,
+            mashakActions: [...(template.mashakActions || []), actionText]
+        });
+        setSelectedMashakAction("");
+    };
+
+    const deleteMashakAction = (index: number) => {
+        if (!template) return;
+        const newActions = [...(template.mashakActions || [])];
+        newActions.splice(index, 1);
+        setTemplate({ ...template, mashakActions: newActions });
+    };
+
+    // --- פעולות חייל ---
+    const addSoldierAction = (action?: string) => {
+        if (!template) return;
+        const actionText = action || selectedSoldierAction;
+        if (!actionText) return;
+        setTemplate({
+            ...template,
+            soldierActions: [...(template.soldierActions || []), actionText]
+        });
+        setSelectedSoldierAction("");
+    };
+
+    const deleteSoldierAction = (index: number) => {
+        if (!template) return;
+        const newActions = [...(template.soldierActions || [])];
+        newActions.splice(index, 1);
+        setTemplate({ ...template, soldierActions: newActions });
     };
 
     // --- שמירה ---
     const handleSave = async () => {
         if (!template) return;
 
-        // ולידציה בסיסית
         if (!template.title || !template.id) {
             alert("חובה למלא שם תבנית ומזהה ייחודי (ID)");
             return;
@@ -176,7 +231,7 @@ export default function EditTemplatePage() {
                     </Button>
                 </div>
 
-                {/* חלק 0: הגדרות כלליות (Metadata) */}
+                {/* חלק 0: הגדרות כלליות */}
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="bg-slate-50/50 border-b border-slate-100">
                         <CardTitle className="flex items-center gap-2 text-base">
@@ -218,9 +273,12 @@ export default function EditTemplatePage() {
                                     <SelectItem value="tashmash">תשמ"ש</SelectItem>
                                     <SelectItem value="lone_soldier">חייל בודד</SelectItem>
                                     <SelectItem value="housing">דיור</SelectItem>
+                                    <SelectItem value="helana">הלנות</SelectItem>
+                                    <SelectItem value="hakash">הקלות</SelectItem>
                                     <SelectItem value="economic">כלכלי</SelectItem>
-                                    <SelectItem value="leave">חופשות והקלות</SelectItem>
-                                    <SelectItem value="general">כללי</SelectItem>
+                                    <SelectItem value="leave">חופשות</SelectItem>
+                                    <SelectItem value="or_population">אוכלוסיות אור</SelectItem>
+                                    <SelectItem value="other">אחר</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -235,18 +293,27 @@ export default function EditTemplatePage() {
                             />
                         </div>
 
-                        {/* שדות חדשים: גורם מאשר וביקור בית */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">גורם מאשר</label>
                             <Input
-                                value={template.approvingAuthority}
+                                value={template.approvingAuthority || ""}
                                 onChange={(e) => updateMeta('approvingAuthority', e.target.value)}
                                 placeholder="לדוגמה: סא״ל / רמ״ד פרט"
                                 className="bg-white"
                             />
                         </div>
 
-                        <div className="flex items-center gap-4 mt-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">זמן טיפול (שעות)</label>
+                            <Input
+                                type="number"
+                                value={template.slaHours}
+                                onChange={(e) => updateMeta('slaHours', parseInt(e.target.value) || 168)}
+                                className="bg-white"
+                            />
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-4 mt-4">
                             <div className="flex items-center gap-2">
                                 <Checkbox
                                     id="home-visit"
@@ -264,19 +331,72 @@ export default function EditTemplatePage() {
                                 <label htmlFor="declaration" className="text-sm">דורש תצהיר</label>
                             </div>
                         </div>
-
                     </CardContent>
                 </Card>
 
-                {/* חלק 1: מסמכים ואישורים (Requirements) */}
+                {/* חלק 0.5: קריטריונים ומילות מפתח */}
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="bg-blue-50/50 border-b border-slate-100">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <Info className="w-5 h-5 text-blue-600" /> קריטריונים ומילות מפתח (ל-AI)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">קריטריונים לזכאות (מופרדים בפסיק)</label>
+                            <Textarea
+                                value={(template.eligibilityCriteria || []).join(', ')}
+                                onChange={(e) => updateMeta('eligibilityCriteria', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                                placeholder="לדוגמה: הורים בחו״ל, מצוקה כלכלית, אין קרובים בארץ"
+                                className="bg-white min-h-[80px]"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">מילות מפתח לזיהוי (מופרדות בפסיק)</label>
+                            <Textarea
+                                value={(template.aiKeywords || []).join(', ')}
+                                onChange={(e) => updateMeta('aiKeywords', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                                placeholder="לדוגמה: עולה, חו״ל, הורים, בודד"
+                                className="bg-white min-h-[80px]"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">הטבות נלוות (מופרדות בפסיק)</label>
+                            <Input
+                                value={(template.relatedBenefits || []).join(', ')}
+                                onChange={(e) => updateMeta('relatedBenefits', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                                placeholder="לדוגמה: שכ״ד, מענקים, טיסות"
+                                className="bg-white"
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* חלק 1: מסמכים ואישורים */}
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="bg-slate-50/50 border-b border-slate-100">
                         <CardTitle className="flex items-center gap-2 text-base">
                             <FileText className="w-5 h-5 text-indigo-600" />
-                            דרישות ומסמכים
+                            דרישות ומסמכים ({template.requirements.length})
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">
+                        {/* הוספה מהירה מרשימה מוגדרת */}
+                        <div className="flex gap-2 items-center bg-indigo-50 p-3 rounded-lg border-2 border-dashed border-indigo-300">
+                            <select
+                                className="flex-1 bg-white border border-indigo-300 rounded px-3 py-2 text-sm"
+                                value={selectedReqIndex}
+                                onChange={(e) => setSelectedReqIndex(parseInt(e.target.value))}
+                            >
+                                {COMMON_REQUIREMENTS.map((req, i) => (
+                                    <option key={i} value={i}>{req.title} {req.description ? `(${req.description})` : ''}</option>
+                                ))}
+                            </select>
+                            <Button onClick={addFromPredefinedReq} variant="default" className="bg-indigo-600 hover:bg-indigo-700 gap-1">
+                                <Copy className="w-4 h-4" /> הוסף מהרשימה
+                            </Button>
+                        </div>
+
                         {template.requirements.map((req, i) => (
                             <div key={i} className="flex gap-4 items-start bg-white p-4 rounded-xl border border-slate-200 shadow-sm group hover:border-indigo-300 transition-colors">
                                 <div className="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-slate-500 shrink-0 mt-2">
@@ -320,7 +440,7 @@ export default function EditTemplatePage() {
                                             <label htmlFor={`multi-${i}`} className="text-sm cursor-pointer">ריבוי קבצים</label>
                                         </div>
 
-                                        <div className="flex items-center gap-2 ml-auto">
+                                        <div className="flex items-center gap-2">
                                             <span className="text-xs text-slate-500">סוג:</span>
                                             <select
                                                 className="text-sm bg-white border border-slate-300 rounded px-2 py-1"
@@ -330,6 +450,19 @@ export default function EditTemplatePage() {
                                                 <option value="file">קובץ</option>
                                                 <option value="boolean">כן/לא</option>
                                                 <option value="text">טקסט</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mr-auto">
+                                            <span className="text-xs text-slate-500">מי מביא:</span>
+                                            <select
+                                                className="text-sm bg-white border border-slate-300 rounded px-2 py-1"
+                                                value={req.assignedTo || 'soldier'}
+                                                onChange={(e) => updateReq(i, 'assignedTo', e.target.value)}
+                                            >
+                                                <option value="soldier">החייל</option>
+                                                <option value="mashak">המש״ק</option>
+                                                <option value="commander">המפקד</option>
                                             </select>
                                         </div>
                                     </div>
@@ -342,17 +475,97 @@ export default function EditTemplatePage() {
                         ))}
 
                         <Button variant="outline" onClick={addReq} className="w-full border-dashed border-2 border-slate-300 hover:border-indigo-400 hover:bg-indigo-50 text-slate-500">
-                            <Plus className="w-4 h-4 mr-2" /> הוסף מסמך/דרישה
+                            <Plus className="w-4 h-4 mr-2" /> הוסף מסמך/דרישה חדשה
                         </Button>
                     </CardContent>
                 </Card>
 
-                {/* חלק 2: תהליך עבודה (Workflow) */}
+                {/* חלק 1.5: פעולות מש"ק */}
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="bg-emerald-50/50 border-b border-slate-100">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <ListOrdered className="w-5 h-5 text-emerald-600" />
+                            פעולות מש"ק ({(template.mashakActions || []).length})
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                        {/* הוספה מהירה */}
+                        <div className="flex gap-2 items-center bg-emerald-50 p-3 rounded-lg border-2 border-dashed border-emerald-300">
+                            <select
+                                className="flex-1 bg-white border border-emerald-300 rounded px-3 py-2 text-sm"
+                                value={selectedMashakAction}
+                                onChange={(e) => setSelectedMashakAction(e.target.value)}
+                            >
+                                <option value="">בחר פעולה...</option>
+                                {COMMON_MASHAK_ACTIONS.map((action, i) => (
+                                    <option key={i} value={action}>{action}</option>
+                                ))}
+                            </select>
+                            <Button onClick={() => addMashakAction()} variant="default" className="bg-emerald-600 hover:bg-emerald-700 gap-1" disabled={!selectedMashakAction}>
+                                <Plus className="w-4 h-4" /> הוסף
+                            </Button>
+                        </div>
+
+                        {(template.mashakActions || []).map((action, i) => (
+                            <div key={i} className="flex gap-4 items-center bg-white p-3 rounded-lg border border-slate-200 group">
+                                <div className="bg-emerald-100 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-emerald-700">
+                                    {i + 1}
+                                </div>
+                                <span className="flex-1">{action}</span>
+                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500" onClick={() => deleteMashakAction(i)}>
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                {/* חלק 1.6: פעולות חייל */}
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="bg-blue-50/50 border-b border-slate-100">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <FileText className="w-5 h-5 text-blue-600" />
+                            פעולות חייל ({(template.soldierActions || []).length})
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                        {/* הוספה מהירה */}
+                        <div className="flex gap-2 items-center bg-blue-50 p-3 rounded-lg border-2 border-dashed border-blue-300">
+                            <select
+                                className="flex-1 bg-white border border-blue-300 rounded px-3 py-2 text-sm"
+                                value={selectedSoldierAction}
+                                onChange={(e) => setSelectedSoldierAction(e.target.value)}
+                            >
+                                <option value="">בחר פעולה...</option>
+                                {COMMON_SOLDIER_ACTIONS.map((action, i) => (
+                                    <option key={i} value={action}>{action}</option>
+                                ))}
+                            </select>
+                            <Button onClick={() => addSoldierAction()} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-1" disabled={!selectedSoldierAction}>
+                                <Plus className="w-4 h-4" /> הוסף
+                            </Button>
+                        </div>
+
+                        {(template.soldierActions || []).map((action, i) => (
+                            <div key={i} className="flex gap-4 items-center bg-white p-3 rounded-lg border border-slate-200 group">
+                                <div className="bg-blue-100 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-blue-700">
+                                    {i + 1}
+                                </div>
+                                <span className="flex-1">{action}</span>
+                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500" onClick={() => deleteSoldierAction(i)}>
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                {/* חלק 2: תהליך עבודה */}
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="bg-slate-50/50 border-b border-slate-100">
                         <CardTitle className="flex items-center gap-2 text-base">
                             <ListOrdered className="w-5 h-5 text-emerald-600" />
-                            תהליך הטיפול
+                            תהליך הטיפול ({template.workflow.length} שלבים)
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">

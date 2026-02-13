@@ -1,3 +1,9 @@
+// ============================================
+// קובץ: src/lib/tash-admin.ts
+// החלף את הקובץ הקיים בזה
+// מעודכן להחזיר את כל השדות החדשים
+// ============================================
+
 import * as admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { RequestTemplate } from '@/types/schema';
@@ -9,14 +15,12 @@ function getAdminDb() {
     }
 
     // 1. נסיון לטעון ממשתני סביבה (עבור Vercel/Production)
-    // ב-Vercel מגדירים את המשתנים: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
     if (process.env.FIREBASE_PRIVATE_KEY) {
         try {
             admin.initializeApp({
                 credential: admin.credential.cert({
                     projectId: process.env.FIREBASE_PROJECT_ID,
                     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                    // תיקון קריטי: Vercel הופך ירידות שורה ל-\n, צריך להחזיר אותן
                     privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
                 }),
             });
@@ -38,10 +42,8 @@ function getAdminDb() {
         console.warn('Firebase Admin: Service account file not found. Skipping admin init.');
     }
 
-    // אם הכל נכשל, נחזיר מופע ריק או נזרוק שגיאה
-    // (זה ימנע קריסה ב-Build, אבל ה-API לא יעבוד בלי המשתנים)
     if (admin.apps.length === 0) {
-        admin.initializeApp(); // אתחול דיפולטיבי (לא יעבוד בלי קרדנשיאלס אמיתיים)
+        admin.initializeApp();
     }
 
     return getFirestore();
@@ -50,7 +52,6 @@ function getAdminDb() {
 const adminDb = getAdminDb();
 
 export async function getAllTemplatesForAI(): Promise<RequestTemplate[]> {
-    // בדיקה שיש לנו חיבור
     if (!adminDb) return [];
 
     try {
@@ -63,8 +64,24 @@ export async function getAllTemplatesForAI(): Promise<RequestTemplate[]> {
                 title: data.title || "ללא כותרת",
                 category: data.category || "general",
                 shortDescription: data.shortDescription || "",
+
+                // שדות חדשים ל-AI
+                eligibilityCriteria: data.eligibilityCriteria || [],
+                aiKeywords: data.aiKeywords || [],
+                approvingAuthority: data.approvingAuthority || '',
+                requiresHomeVisit: data.requiresHomeVisit || false,
+                requiresDeclaration: data.requiresDeclaration || false,
+                procedure30Days: data.procedure30Days,
+                relatedBenefits: data.relatedBenefits || [],
+
+                // שדות קיימים
                 requirements: data.requirements || [],
                 workflow: data.workflow || [],
+
+                // פעולות מפורטות
+                soldierActions: data.soldierActions || [],
+                mashakActions: data.mashakActions || [],
+
                 slaHours: data.slaHours || 0,
                 lastUpdated: data.lastUpdated || new Date().toISOString()
             } as RequestTemplate;
@@ -73,4 +90,60 @@ export async function getAllTemplatesForAI(): Promise<RequestTemplate[]> {
         console.error("Error fetching templates via Admin SDK:", e);
         return [];
     }
+}
+
+// פונקציה לקבלת תבנית בודדת
+export async function getTemplateById(id: string): Promise<RequestTemplate | null> {
+    if (!adminDb) return null;
+
+    try {
+        const doc = await adminDb.collection('requestTemplates').doc(id).get();
+        if (!doc.exists) return null;
+
+        const data = doc.data();
+        return {
+            id: doc.id,
+            title: data?.title || "ללא כותרת",
+            category: data?.category || "general",
+            shortDescription: data?.shortDescription || "",
+            eligibilityCriteria: data?.eligibilityCriteria || [],
+            aiKeywords: data?.aiKeywords || [],
+            approvingAuthority: data?.approvingAuthority || '',
+            requiresHomeVisit: data?.requiresHomeVisit || false,
+            requiresDeclaration: data?.requiresDeclaration || false,
+            procedure30Days: data?.procedure30Days,
+            relatedBenefits: data?.relatedBenefits || [],
+            requirements: data?.requirements || [],
+            workflow: data?.workflow || [],
+            soldierActions: data?.soldierActions || [],
+            mashakActions: data?.mashakActions || [],
+            slaHours: data?.slaHours || 0,
+            lastUpdated: data?.lastUpdated || new Date().toISOString()
+        } as RequestTemplate;
+    } catch (e) {
+        console.error("Error fetching template:", e);
+        return null;
+    }
+}
+
+// פונקציה לחיפוש תבניות לפי מילות מפתח
+export async function searchTemplates(query: string): Promise<RequestTemplate[]> {
+    const allTemplates = await getAllTemplatesForAI();
+    const queryLower = query.toLowerCase();
+
+    return allTemplates.filter(template => {
+        // חיפוש בכותרת
+        if (template.title.toLowerCase().includes(queryLower)) return true;
+
+        // חיפוש בתיאור
+        if (template.shortDescription.toLowerCase().includes(queryLower)) return true;
+
+        // חיפוש במילות מפתח
+        if (template.aiKeywords?.some(k => k.toLowerCase().includes(queryLower))) return true;
+
+        // חיפוש בקריטריונים
+        if (template.eligibilityCriteria?.some(c => c.toLowerCase().includes(queryLower))) return true;
+
+        return false;
+    });
 }

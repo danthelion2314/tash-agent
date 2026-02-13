@@ -199,25 +199,25 @@ export default function EditTemplatePage() {
         }
     };
 
-    if (loading) return <AppShell><div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div></AppShell>;
-    if (!template) return <AppShell><div>שגיאה בטעינת הנתונים</div></AppShell>;
+    if (loading) return <AppShell><div className="flex h-full items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div></AppShell>;
+    if (!template) return <AppShell><div className="flex h-full items-center justify-center text-slate-400">שגיאה בטעינת הנתונים</div></AppShell>;
 
     return (
         <AppShell>
-            <div className="max-w-5xl mx-auto space-y-8 pb-20 px-2 md:px-0">
+            <div className="max-w-5xl mx-auto space-y-6 pb-20 px-2 md:px-0 animate-fade-up">
 
                 {/* Header Sticky */}
-                <div className="flex items-center justify-between sticky top-0 bg-[#f8fafc]/95 backdrop-blur z-20 py-4 border-b border-slate-200">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" onClick={() => router.back()}>
+                <div className="flex items-center justify-between sticky top-0 glass-strong z-20 py-4 px-4 -mx-4 border-b border-slate-200/40 rounded-b-xl">
+                    <div className="flex items-center gap-3">
+                        <Button variant="ghost" onClick={() => router.back()} className="rounded-xl hover:bg-slate-100">
                             <ArrowRight className="w-5 h-5" />
                         </Button>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900">
+                            <h1 className="text-xl md:text-2xl font-bold text-slate-900">
                                 {isNewMode ? "יצירת תבנית חדשה" : `עריכת תבנית: ${template.title}`}
                             </h1>
                             {!isNewMode && (
-                                <div className="flex items-center gap-2 text-amber-600 text-xs font-medium">
+                                <div className="flex items-center gap-2 text-amber-600 text-xs font-medium mt-0.5">
                                     <AlertTriangle className="w-3 h-3" />
                                     שינויים כאן ישפיעו על בקשות חדשות בלבד
                                 </div>
@@ -225,52 +225,55 @@ export default function EditTemplatePage() {
                         </div>
                     </div>
 
-                    <Button onClick={handleSave} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 gap-2 shadow-lg shadow-emerald-900/10">
+                    <Button onClick={handleSave} disabled={saving} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 gap-2 shadow-lg shadow-emerald-600/20 border-0 rounded-xl h-10 transition-all hover:scale-[1.02] active:scale-[0.98]">
                         {saving ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                         שמור תבנית
                     </Button>
                 </div>
 
                 {/* חלק 0: הגדרות כלליות */}
-                <Card className="border-slate-200 shadow-sm">
-                    <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <Info className="w-5 h-5 text-blue-600" /> פרטים כלליים
+                <Card className="border-slate-200/60 shadow-sm bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-slate-50/80 to-slate-50/40 border-b border-slate-100/60 py-4">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <Info className="w-4 h-4 text-blue-600" />
+                            </div>
+                            פרטים כלליים
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">שם התבנית (כותרת)</label>
+                    <CardContent className="p-5 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">שם התבנית (כותרת)</label>
                             <Input
                                 value={template.title}
                                 onChange={(e) => updateMeta('title', e.target.value)}
                                 placeholder="לדוגמה: מענק בזק"
-                                className="bg-white"
+                                className="bg-white/60 rounded-xl h-10 border-slate-200 focus:bg-white transition-colors"
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">מזהה מערכת (ID)</label>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">מזהה מערכת (ID)</label>
                             <Input
                                 value={template.id}
                                 onChange={(e) => updateMeta('id', e.target.value)}
                                 placeholder="eng_chars_only (e.g. bzack-grant)"
                                 disabled={!isNewMode}
-                                className={`bg-white font-mono text-sm ${!isNewMode && 'bg-slate-100 text-slate-500'}`}
+                                className={`bg-white/60 font-mono text-sm rounded-xl h-10 border-slate-200 ${!isNewMode && 'bg-slate-100/80 text-slate-500'}`}
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">קטגוריה</label>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">קטגוריה</label>
                             <Select
                                 value={template.category}
                                 onValueChange={(val) => updateMeta('category', val)}
                             >
-                                <SelectTrigger className="bg-white">
+                                <SelectTrigger className="bg-white/60 rounded-xl h-10 border-slate-200">
                                     <SelectValue placeholder="בחר קטגוריה" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="tashmash">תשמ"ש</SelectItem>
+                                <SelectContent className="rounded-xl">
+                                    <SelectItem value="tashmash">תשמ&quot;ש</SelectItem>
                                     <SelectItem value="lone_soldier">חייל בודד</SelectItem>
                                     <SelectItem value="housing">דיור</SelectItem>
                                     <SelectItem value="helana">הלנות</SelectItem>
@@ -283,108 +286,115 @@ export default function EditTemplatePage() {
                             </Select>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">תיאור קצר</label>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">תיאור קצר</label>
                             <Input
                                 value={template.shortDescription}
                                 onChange={(e) => updateMeta('shortDescription', e.target.value)}
                                 placeholder="מה מטרת הבקשה?"
-                                className="bg-white"
+                                className="bg-white/60 rounded-xl h-10 border-slate-200"
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">גורם מאשר</label>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">גורם מאשר</label>
                             <Input
                                 value={template.approvingAuthority || ""}
                                 onChange={(e) => updateMeta('approvingAuthority', e.target.value)}
                                 placeholder="לדוגמה: סא״ל / רמ״ד פרט"
-                                className="bg-white"
+                                className="bg-white/60 rounded-xl h-10 border-slate-200"
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">זמן טיפול (שעות)</label>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">זמן טיפול (שעות)</label>
                             <Input
                                 type="number"
                                 value={template.slaHours}
                                 onChange={(e) => updateMeta('slaHours', parseInt(e.target.value) || 168)}
-                                className="bg-white"
+                                className="bg-white/60 rounded-xl h-10 border-slate-200"
                             />
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 mt-4">
-                            <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-6 mt-2 md:col-span-2 bg-slate-50/60 p-4 rounded-xl border border-slate-200/40">
+                            <div className="flex items-center gap-2.5">
                                 <Checkbox
                                     id="home-visit"
                                     checked={template.requiresHomeVisit}
                                     onCheckedChange={(c) => updateMeta('requiresHomeVisit', c)}
+                                    className="rounded-md"
                                 />
-                                <label htmlFor="home-visit" className="text-sm">דורש ביקור בית</label>
+                                <label htmlFor="home-visit" className="text-sm font-medium cursor-pointer">דורש ביקור בית</label>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2.5">
                                 <Checkbox
                                     id="declaration"
                                     checked={template.requiresDeclaration}
                                     onCheckedChange={(c) => updateMeta('requiresDeclaration', c)}
+                                    className="rounded-md"
                                 />
-                                <label htmlFor="declaration" className="text-sm">דורש תצהיר</label>
+                                <label htmlFor="declaration" className="text-sm font-medium cursor-pointer">דורש תצהיר</label>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* חלק 0.5: קריטריונים ומילות מפתח */}
-                <Card className="border-slate-200 shadow-sm">
-                    <CardHeader className="bg-blue-50/50 border-b border-slate-100">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <Info className="w-5 h-5 text-blue-600" /> קריטריונים ומילות מפתח (ל-AI)
+                <Card className="border-slate-200/60 shadow-sm bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/30 border-b border-slate-100/60 py-4">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="w-7 h-7 bg-blue-100/80 rounded-lg flex items-center justify-center">
+                                <Info className="w-4 h-4 text-blue-600" />
+                            </div>
+                            קריטריונים ומילות מפתח (ל-AI)
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">קריטריונים לזכאות (מופרדים בפסיק)</label>
+                    <CardContent className="p-5 md:p-6 space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">קריטריונים לזכאות (מופרדים בפסיק)</label>
                             <Textarea
                                 value={(template.eligibilityCriteria || []).join(', ')}
                                 onChange={(e) => updateMeta('eligibilityCriteria', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
                                 placeholder="לדוגמה: הורים בחו״ל, מצוקה כלכלית, אין קרובים בארץ"
-                                className="bg-white min-h-[80px]"
+                                className="bg-white/60 min-h-[80px] rounded-xl border-slate-200"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">מילות מפתח לזיהוי (מופרדות בפסיק)</label>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">מילות מפתח לזיהוי (מופרדות בפסיק)</label>
                             <Textarea
                                 value={(template.aiKeywords || []).join(', ')}
                                 onChange={(e) => updateMeta('aiKeywords', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
                                 placeholder="לדוגמה: עולה, חו״ל, הורים, בודד"
-                                className="bg-white min-h-[80px]"
+                                className="bg-white/60 min-h-[80px] rounded-xl border-slate-200"
                             />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">הטבות נלוות (מופרדות בפסיק)</label>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-slate-700">הטבות נלוות (מופרדות בפסיק)</label>
                             <Input
                                 value={(template.relatedBenefits || []).join(', ')}
                                 onChange={(e) => updateMeta('relatedBenefits', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
                                 placeholder="לדוגמה: שכ״ד, מענקים, טיסות"
-                                className="bg-white"
+                                className="bg-white/60 rounded-xl h-10 border-slate-200"
                             />
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* חלק 1: מסמכים ואישורים */}
-                <Card className="border-slate-200 shadow-sm">
-                    <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <FileText className="w-5 h-5 text-indigo-600" />
+                <Card className="border-slate-200/60 shadow-sm bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-purple-50/30 border-b border-slate-100/60 py-4">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="w-7 h-7 bg-indigo-100/80 rounded-lg flex items-center justify-center">
+                                <FileText className="w-4 h-4 text-indigo-600" />
+                            </div>
                             דרישות ומסמכים ({template.requirements.length})
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
+                    <CardContent className="p-5 md:p-6 space-y-4">
                         {/* הוספה מהירה מרשימה מוגדרת */}
-                        <div className="flex gap-2 items-center bg-indigo-50 p-3 rounded-lg border-2 border-dashed border-indigo-300">
+                        <div className="flex gap-2 items-center bg-gradient-to-r from-indigo-50/60 to-purple-50/30 p-3.5 rounded-xl border border-dashed border-indigo-300/50">
                             <select
-                                className="flex-1 bg-white border border-indigo-300 rounded px-3 py-2 text-sm"
+                                className="flex-1 bg-white border border-indigo-200/60 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                 value={selectedReqIndex}
                                 onChange={(e) => setSelectedReqIndex(parseInt(e.target.value))}
                             >
@@ -392,43 +402,44 @@ export default function EditTemplatePage() {
                                     <option key={i} value={i}>{req.title} {req.description ? `(${req.description})` : ''}</option>
                                 ))}
                             </select>
-                            <Button onClick={addFromPredefinedReq} variant="default" className="bg-indigo-600 hover:bg-indigo-700 gap-1">
+                            <Button onClick={addFromPredefinedReq} variant="default" className="bg-indigo-600 hover:bg-indigo-700 gap-1 rounded-xl border-0 shrink-0">
                                 <Copy className="w-4 h-4" /> הוסף מהרשימה
                             </Button>
                         </div>
 
                         {template.requirements.map((req, i) => (
-                            <div key={i} className="flex gap-4 items-start bg-white p-4 rounded-xl border border-slate-200 shadow-sm group hover:border-indigo-300 transition-colors">
-                                <div className="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-slate-500 shrink-0 mt-2">
+                            <div key={i} className="flex gap-4 items-start bg-white/60 p-4 rounded-xl border border-slate-200/60 shadow-sm group hover:border-indigo-200/60 transition-all">
+                                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-indigo-600 shrink-0 mt-2 border border-indigo-200/30">
                                     {i + 1}
                                 </div>
 
-                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-slate-500">שם המסמך</label>
+                                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">שם המסמך</label>
                                         <Input
                                             value={req.title}
                                             onChange={(e) => updateReq(i, 'title', e.target.value)}
-                                            className="font-bold bg-slate-50/50 focus:bg-white"
+                                            className="font-bold bg-slate-50/50 focus:bg-white rounded-xl h-9 border-slate-200 transition-colors"
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs font-semibold text-slate-500">הסבר</label>
+                                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">הסבר</label>
                                         <Input
                                             value={req.description || ""}
                                             onChange={(e) => updateReq(i, 'description', e.target.value)}
-                                            className="bg-slate-50/50 focus:bg-white"
+                                            className="bg-slate-50/50 focus:bg-white rounded-xl h-9 border-slate-200 transition-colors"
                                         />
                                     </div>
 
-                                    <div className="md:col-span-2 flex flex-wrap items-center gap-4 mt-2 bg-slate-50 p-2 rounded-lg">
+                                    <div className="md:col-span-2 flex flex-wrap items-center gap-4 mt-1 bg-slate-50/60 p-3 rounded-xl border border-slate-200/40">
                                         <div className="flex items-center gap-2">
                                             <Checkbox
                                                 id={`req-${i}`}
                                                 checked={req.required}
                                                 onCheckedChange={(c) => updateReq(i, 'required', c)}
+                                                className="rounded-md"
                                             />
-                                            <label htmlFor={`req-${i}`} className="text-sm cursor-pointer">חובה</label>
+                                            <label htmlFor={`req-${i}`} className="text-sm cursor-pointer font-medium">חובה</label>
                                         </div>
 
                                         <div className="flex items-center gap-2">
@@ -436,14 +447,15 @@ export default function EditTemplatePage() {
                                                 id={`multi-${i}`}
                                                 checked={req.allowMultiple}
                                                 onCheckedChange={(c) => updateReq(i, 'allowMultiple', c)}
+                                                className="rounded-md"
                                             />
-                                            <label htmlFor={`multi-${i}`} className="text-sm cursor-pointer">ריבוי קבצים</label>
+                                            <label htmlFor={`multi-${i}`} className="text-sm cursor-pointer font-medium">ריבוי קבצים</label>
                                         </div>
 
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-slate-500">סוג:</span>
+                                            <span className="text-[11px] text-slate-500 font-semibold">סוג:</span>
                                             <select
-                                                className="text-sm bg-white border border-slate-300 rounded px-2 py-1"
+                                                className="text-sm bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                                 value={req.type}
                                                 onChange={(e) => updateReq(i, 'type', e.target.value)}
                                             >
@@ -454,9 +466,9 @@ export default function EditTemplatePage() {
                                         </div>
 
                                         <div className="flex items-center gap-2 mr-auto">
-                                            <span className="text-xs text-slate-500">מי מביא:</span>
+                                            <span className="text-[11px] text-slate-500 font-semibold">מי מביא:</span>
                                             <select
-                                                className="text-sm bg-white border border-slate-300 rounded px-2 py-1"
+                                                className="text-sm bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                                 value={req.assignedTo || 'soldier'}
                                                 onChange={(e) => updateReq(i, 'assignedTo', e.target.value)}
                                             >
@@ -468,31 +480,33 @@ export default function EditTemplatePage() {
                                     </div>
                                 </div>
 
-                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500 hover:bg-red-50" onClick={() => deleteReq(i)}>
-                                    <Trash2 className="w-5 h-5" />
+                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" onClick={() => deleteReq(i)}>
+                                    <Trash2 className="w-4 h-4" />
                                 </Button>
                             </div>
                         ))}
 
-                        <Button variant="outline" onClick={addReq} className="w-full border-dashed border-2 border-slate-300 hover:border-indigo-400 hover:bg-indigo-50 text-slate-500">
+                        <Button variant="outline" onClick={addReq} className="w-full border-dashed border-2 border-slate-300/60 hover:border-indigo-400 hover:bg-indigo-50/50 text-slate-500 rounded-xl h-11 transition-all">
                             <Plus className="w-4 h-4 mr-2" /> הוסף מסמך/דרישה חדשה
                         </Button>
                     </CardContent>
                 </Card>
 
                 {/* חלק 1.5: פעולות מש"ק */}
-                <Card className="border-slate-200 shadow-sm">
-                    <CardHeader className="bg-emerald-50/50 border-b border-slate-100">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <ListOrdered className="w-5 h-5 text-emerald-600" />
-                            פעולות מש"ק ({(template.mashakActions || []).length})
+                <Card className="border-slate-200/60 shadow-sm bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-emerald-50/50 to-teal-50/30 border-b border-slate-100/60 py-4">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="w-7 h-7 bg-emerald-100/80 rounded-lg flex items-center justify-center">
+                                <ListOrdered className="w-4 h-4 text-emerald-600" />
+                            </div>
+                            פעולות מש&quot;ק ({(template.mashakActions || []).length})
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
+                    <CardContent className="p-5 md:p-6 space-y-3">
                         {/* הוספה מהירה */}
-                        <div className="flex gap-2 items-center bg-emerald-50 p-3 rounded-lg border-2 border-dashed border-emerald-300">
+                        <div className="flex gap-2 items-center bg-gradient-to-r from-emerald-50/60 to-teal-50/30 p-3.5 rounded-xl border border-dashed border-emerald-300/50">
                             <select
-                                className="flex-1 bg-white border border-emerald-300 rounded px-3 py-2 text-sm"
+                                className="flex-1 bg-white border border-emerald-200/60 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
                                 value={selectedMashakAction}
                                 onChange={(e) => setSelectedMashakAction(e.target.value)}
                             >
@@ -501,18 +515,18 @@ export default function EditTemplatePage() {
                                     <option key={i} value={action}>{action}</option>
                                 ))}
                             </select>
-                            <Button onClick={() => addMashakAction()} variant="default" className="bg-emerald-600 hover:bg-emerald-700 gap-1" disabled={!selectedMashakAction}>
+                            <Button onClick={() => addMashakAction()} variant="default" className="bg-emerald-600 hover:bg-emerald-700 gap-1 rounded-xl border-0 shrink-0" disabled={!selectedMashakAction}>
                                 <Plus className="w-4 h-4" /> הוסף
                             </Button>
                         </div>
 
                         {(template.mashakActions || []).map((action, i) => (
-                            <div key={i} className="flex gap-4 items-center bg-white p-3 rounded-lg border border-slate-200 group">
-                                <div className="bg-emerald-100 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-emerald-700">
+                            <div key={i} className="flex gap-3 items-center bg-white/60 p-3.5 rounded-xl border border-slate-200/60 group hover:border-emerald-200/60 transition-all">
+                                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold text-emerald-600 border border-emerald-200/30">
                                     {i + 1}
                                 </div>
-                                <span className="flex-1">{action}</span>
-                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500" onClick={() => deleteMashakAction(i)}>
+                                <span className="flex-1 text-sm font-medium">{action}</span>
+                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl opacity-0 group-hover:opacity-100 transition-all" onClick={() => deleteMashakAction(i)}>
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
                             </div>
@@ -521,18 +535,20 @@ export default function EditTemplatePage() {
                 </Card>
 
                 {/* חלק 1.6: פעולות חייל */}
-                <Card className="border-slate-200 shadow-sm">
-                    <CardHeader className="bg-blue-50/50 border-b border-slate-100">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <FileText className="w-5 h-5 text-blue-600" />
+                <Card className="border-slate-200/60 shadow-sm bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-blue-50/50 to-sky-50/30 border-b border-slate-100/60 py-4">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="w-7 h-7 bg-blue-100/80 rounded-lg flex items-center justify-center">
+                                <FileText className="w-4 h-4 text-blue-600" />
+                            </div>
                             פעולות חייל ({(template.soldierActions || []).length})
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
+                    <CardContent className="p-5 md:p-6 space-y-3">
                         {/* הוספה מהירה */}
-                        <div className="flex gap-2 items-center bg-blue-50 p-3 rounded-lg border-2 border-dashed border-blue-300">
+                        <div className="flex gap-2 items-center bg-gradient-to-r from-blue-50/60 to-sky-50/30 p-3.5 rounded-xl border border-dashed border-blue-300/50">
                             <select
-                                className="flex-1 bg-white border border-blue-300 rounded px-3 py-2 text-sm"
+                                className="flex-1 bg-white border border-blue-200/60 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                                 value={selectedSoldierAction}
                                 onChange={(e) => setSelectedSoldierAction(e.target.value)}
                             >
@@ -541,18 +557,18 @@ export default function EditTemplatePage() {
                                     <option key={i} value={action}>{action}</option>
                                 ))}
                             </select>
-                            <Button onClick={() => addSoldierAction()} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-1" disabled={!selectedSoldierAction}>
+                            <Button onClick={() => addSoldierAction()} variant="default" className="bg-blue-600 hover:bg-blue-700 gap-1 rounded-xl border-0 shrink-0" disabled={!selectedSoldierAction}>
                                 <Plus className="w-4 h-4" /> הוסף
                             </Button>
                         </div>
 
                         {(template.soldierActions || []).map((action, i) => (
-                            <div key={i} className="flex gap-4 items-center bg-white p-3 rounded-lg border border-slate-200 group">
-                                <div className="bg-blue-100 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-blue-700">
+                            <div key={i} className="flex gap-3 items-center bg-white/60 p-3.5 rounded-xl border border-slate-200/60 group hover:border-blue-200/60 transition-all">
+                                <div className="bg-gradient-to-br from-blue-50 to-sky-50 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold text-blue-600 border border-blue-200/30">
                                     {i + 1}
                                 </div>
-                                <span className="flex-1">{action}</span>
-                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500" onClick={() => deleteSoldierAction(i)}>
+                                <span className="flex-1 text-sm font-medium">{action}</span>
+                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl opacity-0 group-hover:opacity-100 transition-all" onClick={() => deleteSoldierAction(i)}>
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
                             </div>
@@ -561,42 +577,44 @@ export default function EditTemplatePage() {
                 </Card>
 
                 {/* חלק 2: תהליך עבודה */}
-                <Card className="border-slate-200 shadow-sm">
-                    <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <ListOrdered className="w-5 h-5 text-emerald-600" />
+                <Card className="border-slate-200/60 shadow-sm bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                    <CardHeader className="bg-gradient-to-r from-emerald-50/50 to-green-50/30 border-b border-slate-100/60 py-4">
+                        <CardTitle className="flex items-center gap-2.5 text-base">
+                            <div className="w-7 h-7 bg-emerald-100/80 rounded-lg flex items-center justify-center">
+                                <ListOrdered className="w-4 h-4 text-emerald-600" />
+                            </div>
                             תהליך הטיפול ({template.workflow.length} שלבים)
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
+                    <CardContent className="p-5 md:p-6 space-y-3">
                         {template.workflow.map((step, i) => (
-                            <div key={i} className="flex gap-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm group hover:border-emerald-300 transition-colors">
-                                <div className="bg-emerald-100 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-emerald-700 shrink-0">
+                            <div key={i} className="flex gap-3 items-center bg-white/60 p-4 rounded-xl border border-slate-200/60 shadow-sm group hover:border-emerald-200/60 transition-all">
+                                <div className="bg-gradient-to-br from-emerald-50 to-green-50 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-emerald-600 shrink-0 border border-emerald-200/30">
                                     {step.order}
                                 </div>
 
-                                <div className="flex-1 space-y-2">
+                                <div className="flex-1 space-y-1.5">
                                     <Input
                                         value={step.title}
                                         onChange={(e) => updateStep(i, 'title', e.target.value)}
-                                        className="font-bold border-0 border-b rounded-none focus:ring-0 px-0 focus:border-emerald-500"
+                                        className="font-bold border-0 border-b border-transparent rounded-none focus:ring-0 px-0 focus:border-emerald-400 bg-transparent h-8 text-[15px]"
                                         placeholder="כותרת השלב"
                                     />
                                     <Input
                                         value={step.description}
                                         onChange={(e) => updateStep(i, 'description', e.target.value)}
-                                        className="text-sm text-slate-500 border-0 focus:ring-0 px-0 h-8"
+                                        className="text-sm text-slate-500 border-0 focus:ring-0 px-0 h-7 bg-transparent"
                                         placeholder="תיאור הפעולה הנדרשת..."
                                     />
                                 </div>
 
-                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500 hover:bg-red-50" onClick={() => deleteStep(i)}>
-                                    <Trash2 className="w-5 h-5" />
+                                <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl opacity-0 group-hover:opacity-100 transition-all" onClick={() => deleteStep(i)}>
+                                    <Trash2 className="w-4 h-4" />
                                 </Button>
                             </div>
                         ))}
 
-                        <Button variant="outline" onClick={addStep} className="w-full border-dashed border-2 border-slate-300 hover:border-emerald-400 hover:bg-emerald-50 text-slate-500">
+                        <Button variant="outline" onClick={addStep} className="w-full border-dashed border-2 border-slate-300/60 hover:border-emerald-400 hover:bg-emerald-50/50 text-slate-500 rounded-xl h-11 transition-all">
                             <Plus className="w-4 h-4 mr-2" /> הוסף שלב לטיפול
                         </Button>
                     </CardContent>

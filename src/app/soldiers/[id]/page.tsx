@@ -133,43 +133,49 @@ export default function SoldierProfilePage() {
         return acc;
     }, {} as Record<string, RequestTemplate[]>);
 
-    if (loading) return <AppShell><div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-blue-600 w-8 h-8" /></div></AppShell>;
-    if (!soldier) return <AppShell><div className="p-8 text-center text-slate-500">חייל לא נמצא</div></AppShell>;
+    if (loading) return <AppShell><div className="flex h-full items-center justify-center"><Loader2 className="animate-spin text-blue-600 w-8 h-8" /></div></AppShell>;
+    if (!soldier) return <AppShell><div className="flex h-full items-center justify-center text-slate-400">חייל לא נמצא</div></AppShell>;
 
     return (
         <AppShell>
-            <div className="max-w-6xl mx-auto space-y-6 pb-20 px-2 md:px-0">
+            <div className="max-w-6xl mx-auto space-y-6 pb-20 px-2 md:px-0 animate-fade-up">
 
                 {/* Header */}
-                <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="bg-white/80 backdrop-blur-sm p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shrink-0">
-                            <User className="w-8 h-8" />
+                        <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-2xl flex items-center justify-center text-blue-600 shrink-0 border border-blue-200/30">
+                            <User className="w-7 h-7 md:w-8 md:h-8" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900">{soldier.fullName}</h1>
+                            <h1 className="text-xl md:text-2xl font-bold text-slate-900">{soldier.fullName}</h1>
                             <div className="flex items-center gap-3 text-slate-500 mt-1 text-sm font-medium">
-                                <span className="bg-slate-100 px-2 py-0.5 rounded">מ.א: {soldier.personalId}</span>
-                                {soldier.unit && <span>| {soldier.unit}</span>}
+                                <span className="bg-slate-100/80 px-2.5 py-0.5 rounded-lg text-slate-600 text-xs font-mono">מ.א: {soldier.personalId}</span>
+                                {soldier.unit && <span className="text-slate-400">| {soldier.unit}</span>}
                             </div>
                         </div>
                     </div>
-                    <Button variant="outline" onClick={() => router.push('/soldiers')} className="w-full md:w-auto">
+                    <Button variant="outline" onClick={() => router.push('/soldiers')} className="w-full md:w-auto rounded-xl border-slate-200 hover:border-blue-300 transition-all">
                         <ChevronLeft className="w-4 h-4 ml-1" /> חזרה לרשימה
                     </Button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-6 border-b border-slate-200 px-2 overflow-x-auto no-scrollbar whitespace-nowrap">
+                <div className="flex gap-1 bg-slate-100/80 p-1 rounded-xl w-fit backdrop-blur-sm border border-slate-200/40">
                     <button
                         onClick={() => setActiveTab('history')}
-                        className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'history' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500'}`}
+                        className={`pb-2.5 pt-2.5 px-5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'history'
+                            ? 'bg-white text-blue-600 shadow-sm border border-slate-200/60'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
                     >
                         תיק אישי והיסטוריה
                     </button>
                     <button
                         onClick={() => setActiveTab('consult')}
-                        className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'consult' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500'}`}
+                        className={`pb-2.5 pt-2.5 px-5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'consult'
+                            ? 'bg-white text-indigo-600 shadow-sm border border-slate-200/60'
+                            : 'text-slate-500 hover:text-slate-700'
+                            }`}
                     >
                         התייעצות ופתיחת בקשה
                     </button>
@@ -180,24 +186,41 @@ export default function SoldierProfilePage() {
                     {activeTab === 'history' && (
                         <div className="space-y-4">
                             {history.length === 0 ? (
-                                <div className="text-center py-16 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200">
-                                    <p className="text-lg font-medium text-slate-600">התיק ריק</p>
-                                    <p className="text-sm text-slate-400 mb-4">לא נמצאו בקשות קודמות עבור חייל זה</p>
-                                    <Button onClick={() => setActiveTab('consult')} className="bg-indigo-600">פתח בקשה ראשונה</Button>
+                                <div className="text-center py-16 bg-slate-50/30 rounded-2xl border-2 border-dashed border-slate-200">
+                                    <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <History className="w-7 h-7 text-slate-300" />
+                                    </div>
+                                    <p className="text-lg font-semibold text-slate-600">התיק ריק</p>
+                                    <p className="text-sm text-slate-400 mb-5">לא נמצאו בקשות קודמות עבור חייל זה</p>
+                                    <Button onClick={() => setActiveTab('consult')} className="bg-gradient-to-r from-indigo-600 to-purple-600 border-0 rounded-xl h-10 px-6 shadow-lg shadow-indigo-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                        פתח בקשה ראשונה
+                                    </Button>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
                                     {history.map(c => (
-                                        <Card key={c.id} className="cursor-pointer hover:shadow-md transition-all border-slate-200 hover:border-blue-300 group bg-white" onClick={() => router.push(`/cases/${c.id}`)}>
-                                            <CardHeader className="pb-2 bg-slate-50/50 border-b border-slate-50">
+                                        <Card key={c.id} className="card-interactive border-slate-200/60 bg-white/80 backdrop-blur-sm group rounded-xl overflow-hidden" onClick={() => router.push(`/cases/${c.id}`)}>
+                                            {/* Progress strip */}
+                                            <div className="h-1 bg-slate-100">
+                                                <div
+                                                    className={`h-full rounded-r-full ${c.status === 'active' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' : 'bg-emerald-400'}`}
+                                                    style={{ width: `${(c.soldierChecklist.filter(i => i.isChecked).length / Math.max(c.soldierChecklist.length, 1)) * 100}%` }}
+                                                />
+                                            </div>
+                                            <CardHeader className="pb-2 pt-4 px-5">
                                                 <div className="flex justify-between items-start">
-                                                    <Badge variant="secondary" className="bg-white border-slate-200 text-slate-600">{c.status === 'active' ? 'בטיפול' : 'סגור'}</Badge>
-                                                    <span className="text-xs text-slate-400">{new Date(c.createdAt?.seconds * 1000).toLocaleDateString()}</span>
+                                                    <Badge variant="secondary" className={`text-[11px] px-2.5 py-0.5 rounded-lg font-semibold ${c.status === 'active'
+                                                        ? 'bg-blue-50 text-blue-700 border border-blue-200/50'
+                                                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200/50'
+                                                        }`}>
+                                                        {c.status === 'active' ? 'בטיפול' : 'סגור'}
+                                                    </Badge>
+                                                    <span className="text-[11px] text-slate-400 font-mono">{new Date(c.createdAt?.seconds * 1000).toLocaleDateString()}</span>
                                                 </div>
-                                                <CardTitle className="text-base mt-2 group-hover:text-blue-600 transition-colors">{c.templateTitle}</CardTitle>
+                                                <CardTitle className="text-[15px] mt-2 group-hover:text-blue-600 transition-colors font-bold">{c.templateTitle}</CardTitle>
                                             </CardHeader>
-                                            <CardContent className="pt-4">
-                                                <p className="text-sm text-slate-500 line-clamp-2 h-10">{c.soldierDescription}</p>
+                                            <CardContent className="pt-2 pb-5 px-5">
+                                                <p className="text-sm text-slate-500 line-clamp-2 h-10 leading-relaxed">{c.soldierDescription}</p>
                                             </CardContent>
                                         </Card>
                                     ))}
@@ -208,31 +231,32 @@ export default function SoldierProfilePage() {
 
                     {/* Consult Tab */}
                     {activeTab === 'consult' && (
-                        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 animate-in fade-in">
+                        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8">
 
                             {/* Input Area */}
-                            <div className="lg:col-span-5 space-y-6 order-1">
+                            <div className="lg:col-span-5 space-y-5 order-1">
 
                                 {/* Manual Select */}
-                                <Card className="border-slate-200 shadow-sm bg-white">
-                                    <div className="bg-slate-50 p-3 border-b border-slate-100 flex items-center gap-2">
-                                        <LayoutGrid className="w-4 h-4 text-slate-600" />
+                                <Card className="border-slate-200/60 shadow-sm bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                                    <div className="bg-gradient-to-r from-slate-50 to-slate-50/50 p-4 border-b border-slate-100 flex items-center gap-2.5">
+                                        <div className="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center">
+                                            <LayoutGrid className="w-3.5 h-3.5 text-slate-600" />
+                                        </div>
                                         <h3 className="font-bold text-slate-700 text-sm">פתיחה ידנית מהירה</h3>
                                     </div>
                                     <CardContent className="p-4">
                                         <Select onValueChange={handleManualSelect} disabled={creatingCase}>
-                                            <SelectTrigger className="w-full h-11 bg-white border-slate-200">
+                                            <SelectTrigger className="w-full h-11 bg-white border-slate-200 rounded-xl">
                                                 <SelectValue placeholder="בחר סוג בקשה מהרשימה..." />
                                             </SelectTrigger>
-                                            {/* התיקון כאן: bg-white ו-z-index */}
-                                            <SelectContent className="bg-white border-slate-200 shadow-xl max-h-[300px] z-[9999]">
+                                            <SelectContent className="bg-white border-slate-200 shadow-xl max-h-[300px] z-[9999] rounded-xl">
                                                 {Object.entries(groupedTemplates).map(([category, items]) => (
                                                     <SelectGroup key={category}>
-                                                        <SelectLabel className="bg-slate-100 pl-2 py-1 text-xs font-bold text-slate-500 uppercase tracking-wider sticky top-0">
+                                                        <SelectLabel className="bg-slate-50 pl-2 py-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider sticky top-0">
                                                             {category === 'tashmash' ? 'תשמ"ש' : category === 'lone_soldier' ? 'חייל בודד' : category === 'housing' ? 'דיור' : category === 'economic' ? 'כלכלי' : 'כללי'}
                                                         </SelectLabel>
                                                         {items.map(item => (
-                                                            <SelectItem key={item.id} value={item.id} className="cursor-pointer hover:bg-slate-50">
+                                                            <SelectItem key={item.id} value={item.id} className="cursor-pointer hover:bg-slate-50 rounded-lg">
                                                                 {item.title}
                                                             </SelectItem>
                                                         ))}
@@ -243,27 +267,30 @@ export default function SoldierProfilePage() {
                                     </CardContent>
                                 </Card>
 
-                                <div className="relative flex items-center py-2">
-                                    <div className="flex-grow border-t border-slate-200"></div>
-                                    <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-medium bg-slate-50 px-2 rounded-full">או התייעץ עם המומחה</span>
-                                    <div className="flex-grow border-t border-slate-200"></div>
+                                <div className="relative flex items-center py-1">
+                                    <div className="flex-grow border-t border-slate-200/60"></div>
+                                    <span className="flex-shrink-0 mx-4 text-slate-400 text-[11px] font-semibold bg-slate-50/80 px-3 py-1 rounded-full border border-slate-200/40">או התייעץ עם המומחה</span>
+                                    <div className="flex-grow border-t border-slate-200/60"></div>
                                 </div>
 
                                 {/* AI Input */}
-                                <Card className="border-indigo-100 shadow-md bg-white">
-                                    <div className="bg-gradient-to-r from-indigo-50 to-white p-4 border-b border-indigo-100">
-                                        <h3 className="font-bold text-indigo-900 flex items-center gap-2">
-                                            <BrainCircuit className="w-5 h-5" /> תיאור המקרה לניתוח
+                                <Card className="border-indigo-200/40 shadow-md bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden">
+                                    <div className="bg-gradient-to-r from-indigo-50/80 to-purple-50/40 p-4 border-b border-indigo-100/60">
+                                        <h3 className="font-bold text-indigo-900 flex items-center gap-2.5">
+                                            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-lg flex items-center justify-center border border-indigo-200/30">
+                                                <BrainCircuit className="w-4 h-4 text-indigo-600" />
+                                            </div>
+                                            תיאור המקרה לניתוח
                                         </h3>
                                     </div>
                                     <CardContent className="p-4 space-y-4">
                                         <Textarea
                                             placeholder="תאר את הבעיה בחופשיות... (למשל: החייל נכנס לחובות בגלל הימורים)"
-                                            className="min-h-[150px] resize-none focus:ring-indigo-500 bg-white border-slate-200"
+                                            className="min-h-[150px] resize-none bg-white/60 border-slate-200 rounded-xl transition-all focus:bg-white"
                                             value={aiInput}
                                             onChange={e => setAiInput(e.target.value)}
                                         />
-                                        <Button onClick={handleConsultAi} disabled={isAnalyzing || !aiInput} className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 shadow-lg shadow-indigo-900/20">
+                                        <Button onClick={handleConsultAi} disabled={isAnalyzing || !aiInput} className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 h-11 shadow-lg shadow-indigo-600/20 border-0 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]">
                                             {isAnalyzing ? <Loader2 className="animate-spin ml-2" /> : <Sparkles className="ml-2 w-4 h-4" />}
                                             נתח זכאות
                                         </Button>
@@ -274,19 +301,24 @@ export default function SoldierProfilePage() {
                             {/* AI Results */}
                             <div className="lg:col-span-7 space-y-4 order-2">
                                 {suggestions.length > 0 ? (
-                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                            <CheckCircle2 className="w-5 h-5 text-emerald-500" /> המלצות AI:
+                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+                                        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2.5">
+                                            <div className="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center">
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                            </div>
+                                            המלצות AI:
                                         </h3>
-                                        <div className="space-y-3">
+                                        <div className="space-y-3 stagger-children">
                                             {suggestions.map((req, idx) => (
-                                                <div key={req.id} onClick={() => handleStartCase(req)} className="bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group">
+                                                <div key={req.id} onClick={() => handleStartCase(req)} className="bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-xl p-5 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group card-interactive">
                                                     <div className="flex justify-between items-start">
                                                         <div>
-                                                            <h4 className="font-bold text-lg text-slate-900 group-hover:text-indigo-700">{req.title}</h4>
-                                                            <p className="text-sm text-slate-500 mt-1">{req.shortDescription}</p>
+                                                            <h4 className="font-bold text-[16px] text-slate-900 group-hover:text-indigo-700 transition-colors">{req.title}</h4>
+                                                            <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">{req.shortDescription}</p>
                                                         </div>
-                                                        <div className="bg-slate-50 p-2 rounded-full group-hover:bg-indigo-100 group-hover:text-indigo-600"><Plus className="w-5 h-5" /></div>
+                                                        <div className="bg-slate-50 p-2.5 rounded-xl group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all shrink-0 ml-4">
+                                                            <Plus className="w-5 h-5" />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -294,10 +326,12 @@ export default function SoldierProfilePage() {
                                     </motion.div>
                                 ) : (
                                     !isAnalyzing && (
-                                        <div className="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl min-h-[300px] bg-slate-50/30">
-                                            <Sparkles className="w-10 h-10 mb-2 opacity-20" />
-                                            <p className="font-medium">המתנה לנתונים...</p>
-                                            <p className="text-sm opacity-70">הזן פרטים או בחר בקשה ידנית מהרשימה</p>
+                                        <div className="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl min-h-[300px] bg-slate-50/20">
+                                            <div className="w-14 h-14 bg-slate-100/80 rounded-2xl flex items-center justify-center mb-4">
+                                                <Sparkles className="w-7 h-7 text-slate-300" />
+                                            </div>
+                                            <p className="font-semibold text-slate-500">המתנה לנתונים...</p>
+                                            <p className="text-sm text-slate-400 mt-1">הזן פרטים או בחר בקשה ידנית מהרשימה</p>
                                         </div>
                                     )
                                 )}

@@ -29,6 +29,7 @@ export default function EditTemplatePage() {
 
             if (id === 'new') {
                 setIsNewMode(true);
+                // התיקון: אתחול מלא של כל השדות החדשים מה-Schema
                 setTemplate({
                     id: "",
                     title: "",
@@ -36,8 +37,17 @@ export default function EditTemplatePage() {
                     shortDescription: "",
                     requirements: [],
                     workflow: [],
-                    slaHours: 168, // שבוע כברירת מחדל
-                    lastUpdated: new Date().toISOString()
+                    slaHours: 168,
+                    lastUpdated: new Date().toISOString(),
+                    // === שדות חדשים ===
+                    eligibilityCriteria: [],
+                    aiKeywords: [],
+                    approvingAuthority: "",
+                    requiresHomeVisit: false,
+                    requiresDeclaration: false,
+                    relatedBenefits: [],
+                    soldierActions: [],
+                    mashakActions: []
                 });
                 setLoading(false);
             } else {
@@ -78,7 +88,8 @@ export default function EditTemplatePage() {
             description: "",
             type: "file",
             required: true,
-            allowMultiple: false
+            allowMultiple: false,
+            assignedTo: 'soldier' // ברירת מחדל
         };
         setTemplate({ ...template, requirements: [...template.requirements, newReq] });
     };
@@ -104,7 +115,8 @@ export default function EditTemplatePage() {
             order: template.workflow.length + 1,
             title: "",
             description: "",
-            isAutomated: false
+            isAutomated: false,
+            responsible: 'mashak' // ברירת מחדל
         };
         setTemplate({ ...template, workflow: [...template.workflow, newStep] });
     };
@@ -188,10 +200,9 @@ export default function EditTemplatePage() {
                                 value={template.id}
                                 onChange={(e) => updateMeta('id', e.target.value)}
                                 placeholder="eng_chars_only (e.g. bzack-grant)"
-                                disabled={!isNewMode} // אי אפשר לשנות ID אחרי שנוצר
+                                disabled={!isNewMode}
                                 className={`bg-white font-mono text-sm ${!isNewMode && 'bg-slate-100 text-slate-500'}`}
                             />
-                            {isNewMode && <p className="text-xs text-slate-400">באנגלית בלבד, ללא רווחים (מקפים מותרים)</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -223,6 +234,37 @@ export default function EditTemplatePage() {
                                 className="bg-white"
                             />
                         </div>
+
+                        {/* שדות חדשים: גורם מאשר וביקור בית */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-700">גורם מאשר</label>
+                            <Input
+                                value={template.approvingAuthority}
+                                onChange={(e) => updateMeta('approvingAuthority', e.target.value)}
+                                placeholder="לדוגמה: סא״ל / רמ״ד פרט"
+                                className="bg-white"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-6">
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="home-visit"
+                                    checked={template.requiresHomeVisit}
+                                    onCheckedChange={(c) => updateMeta('requiresHomeVisit', c)}
+                                />
+                                <label htmlFor="home-visit" className="text-sm">דורש ביקור בית</label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="declaration"
+                                    checked={template.requiresDeclaration}
+                                    onCheckedChange={(c) => updateMeta('requiresDeclaration', c)}
+                                />
+                                <label htmlFor="declaration" className="text-sm">דורש תצהיר</label>
+                            </div>
+                        </div>
+
                     </CardContent>
                 </Card>
 
@@ -231,7 +273,7 @@ export default function EditTemplatePage() {
                     <CardHeader className="bg-slate-50/50 border-b border-slate-100">
                         <CardTitle className="flex items-center gap-2 text-base">
                             <FileText className="w-5 h-5 text-indigo-600" />
-                            דרישות ומסמכים (מה לבקש מהחייל?)
+                            דרישות ומסמכים
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">
@@ -310,7 +352,7 @@ export default function EditTemplatePage() {
                     <CardHeader className="bg-slate-50/50 border-b border-slate-100">
                         <CardTitle className="flex items-center gap-2 text-base">
                             <ListOrdered className="w-5 h-5 text-emerald-600" />
-                            תהליך הטיפול (מה המש"קית עושה?)
+                            תהליך הטיפול
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">

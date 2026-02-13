@@ -2,19 +2,21 @@ import * as admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { RequestTemplate } from '@/types/schema';
 
+// פונקציה לאתחול בטוח של ה-Admin SDK (עובד גם מקומית וגם בשרת)
 function getAdminDb() {
-    // אם האפליקציה כבר אותחלה, נחזיר את ה-DB הקיים
+    // אם כבר אותחל, החזר את המופע הקיים
     if (admin.apps.length > 0) {
         return getFirestore();
     }
 
-    // 1. נסיון לטעון ממשתני סביבה (עבור Vercel/Production)
+    // 1. נסיון לטעון ממשתני סביבה (עבור Vercel / Production)
     if (process.env.FIREBASE_PRIVATE_KEY) {
         try {
             admin.initializeApp({
                 credential: admin.credential.cert({
                     projectId: process.env.FIREBASE_PROJECT_ID,
                     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    // תיקון קריטי: Vercel הופך ירידות שורה ל-\n במחרוזת, צריך להחזיר אותן לתווים אמיתיים
                     privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
                 }),
             });
@@ -24,18 +26,22 @@ function getAdminDb() {
         }
     }
 
-    // 2. נסיון לטעון מקובץ לוקאלי (עבור המחשב שלך)
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const serviceAccount = require('../../service-account-key.json');
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
-        return getFirestore();
-    } catch (error) {
-        console.warn('Firebase Admin: Service account file not found. Skipping admin init.');
+    // 2. נסיון לטעון מקובץ לוקאלי (עבור המחשב שלך בלבד)
+    // הבדיקה NODE_ENV !== 'production' מבטיחה שזה לא ירוץ בשרת ויכשיל את ה-Build
+    if (process.env.NODE_ENV !== 'production') {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const serviceAccount = require('../../service-account-key.json');
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+            });
+            return getFirestore();
+        } catch (error) {
+            // התעלמות שקטה בפיתוח אם אין קובץ
+        }
     }
 
+    // Fallback אחרון למניעת קריסה ב-Build Time
     if (admin.apps.length === 0) {
         admin.initializeApp();
     }
@@ -45,7 +51,9 @@ function getAdminDb() {
 
 const adminDb = getAdminDb();
 
+// פונקציה לשליפת כל התבניות עבור ה-AI (משתמשת בהרשאות אדמין)
 export async function getAllTemplatesForAI(): Promise<RequestTemplate[]> {
+    // הגנה: אם ה-DB לא אותחל (למשל ב-Build), נחזיר מערך ריק
     if (!adminDb) return [];
 
     try {
@@ -53,29 +61,29 @@ export async function getAllTemplatesForAI(): Promise<RequestTemplate[]> {
 
         return snapshot.docs.map(doc => {
             const data = doc.data();
+
             return {
                 id: doc.id,
                 title: data.title || "ללא כותרת",
                 category: data.category || "general",
                 shortDescription: data.shortDescription || "",
 
-                // שדות חדשים ל-AI
+                // AI & Logic Fields
                 eligibilityCriteria: data.eligibilityCriteria || [],
                 aiKeywords: data.aiKeywords || [],
                 approvingAuthority: data.approvingAuthority || '',
                 requiresHomeVisit: data.requiresHomeVisit || false,
                 requiresDeclaration: data.requiresDeclaration || false,
-                procedure30Days: data.procedure30Days,
                 relatedBenefits: data.relatedBenefits || [],
+                procedure30Days: data.procedure30Days,
 
-                // שדות קיימים
+                // Lists
                 requirements: data.requirements || [],
                 workflow: data.workflow || [],
-
-                // פעולות מפורטות
                 soldierActions: data.soldierActions || [],
                 mashakActions: data.mashakActions || [],
 
+                // Metadata
                 slaHours: data.slaHours || 0,
                 lastUpdated: data.lastUpdated || new Date().toISOString()
             } as RequestTemplate;
@@ -95,24 +103,26 @@ export async function getTemplateById(id: string): Promise<RequestTemplate | nul
         if (!doc.exists) return null;
 
         const data = doc.data();
+        if (!data) return null;
+
         return {
             id: doc.id,
-            title: data?.title || "ללא כותרת",
-            category: data?.category || "general",
-            shortDescription: data?.shortDescription || "",
-            eligibilityCriteria: data?.eligibilityCriteria || [],
-            aiKeywords: data?.aiKeywords || [],
-            approvingAuthority: data?.approvingAuthority || '',
-            requiresHomeVisit: data?.requiresHomeVisit || false,
-            requiresDeclaration: data?.requiresDeclaration || false,
-            procedure30Days: data?.procedure30Days,
-            relatedBenefits: data?.relatedBenefits || [],
-            requirements: data?.requirements || [],
-            workflow: data?.workflow || [],
-            soldierActions: data?.soldierActions || [],
-            mashakActions: data?.mashakActions || [],
-            slaHours: data?.slaHours || 0,
-            lastUpdated: data?.lastUpdated || new Date().toISOString()
+            title: data.title || "ללא כותרת",
+            category: data.category || "general",
+            shortDescription: data.shortDescription || "",
+            eligibilityCriteria: data.eligibilityCriteria || [],
+            aiKeywords: data.aiKeywords || [],
+            approvingAuthority: data.approvingAuthority || '',
+            requiresHomeVisit: data.requiresHomeVisit || false,
+            requiresDeclaration: data.requiresDeclaration || false,
+            procedure30Days: data.procedure30Days,
+            relatedBenefits: data.relatedBenefits || [],
+            requirements: data.requirements || [],
+            workflow: data.workflow || [],
+            soldierActions: data.soldierActions || [],
+            mashakActions: data.mashakActions || [],
+            slaHours: data.slaHours || 0,
+            lastUpdated: data.lastUpdated || new Date().toISOString()
         } as RequestTemplate;
     } catch (e) {
         console.error("Error fetching template:", e);

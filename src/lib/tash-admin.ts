@@ -1,9 +1,3 @@
-// ============================================
-// קובץ: src/lib/tash-admin.ts
-// החלף את הקובץ הקיים בזה
-// מעודכן להחזיר את כל השדות החדשים
-// ============================================
-
 import * as admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { RequestTemplate } from '@/types/schema';
